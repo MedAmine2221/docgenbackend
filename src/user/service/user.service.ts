@@ -41,10 +41,12 @@ export class UserService implements OnModuleInit {
       }
     }
   }
-  findAll(): Promise<User[]> {
-    return this.userRepository.find();
-  }
 
+  findAll(): Promise<User[]> {
+    return this.userRepository.find({
+      relations: ['role'],
+    });
+  }
   findById(id: string): Promise<User | null> {
     return this.userRepository.findOneBy({ id });
   }
