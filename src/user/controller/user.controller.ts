@@ -50,7 +50,7 @@ export class UserController {
     return this.userService.update(id, user);
   }
 
-  @Put(':id')
+  @Put('/change-password/:id')
   async changePassword(
     @Param('id') id: string,
     @Body() data: ChangePasswordDto,
