@@ -21,13 +21,13 @@ export class UserService implements OnModuleInit {
       {
         name: 'BOUKADIDA Zeineb',
         email: 'zeinebmeriem.boukadida@polytechnicien.tn',
-        password: bcrypt.hash('Admin@123', 10),
+        password: await bcrypt.hash('Admin@123', 10),
         role: adminRole,
       },
       {
         name: 'LAZREG Mohamed Amine',
         email: 'lazregamine258@gmail.com',
-        password: bcrypt.hash('Admin@123', 10),
+        password: await bcrypt.hash('Admin@123', 10),
         role: adminRole,
       },
     ];
