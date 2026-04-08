@@ -24,6 +24,7 @@ export class AuthService {
     }
 
     return {
+      userInfo: findUser,
       access_token: await this.jwtService.signAsync(
         { name: findUser.name, role: findUser.role },
         { secret: this.configService.get('jwt.secretCode') },
