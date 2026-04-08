@@ -38,8 +38,6 @@ export class UserController {
 
   @Post()
   async createUser(@Body() user: User): Promise<User> {
-    console.log('user ', user);
-
     return this.userService.create(user);
   }
 

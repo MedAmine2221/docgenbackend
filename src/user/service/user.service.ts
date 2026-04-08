@@ -3,6 +3,7 @@ import { User } from '../entity/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Roles } from 'src/roles/entity/roles.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -59,8 +60,15 @@ export class UserService implements OnModuleInit {
     return user;
   }
 
-  create(user: User): Promise<User> {
-    return this.userRepository.save(user);
+  async create(user: User): Promise<User> {
+    const { password, ...userData } = user;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const data = {
+      ...userData,
+      password: hashedPassword,
+    };
+    return this.userRepository.save(data);
   }
 
   async update(id: string, user: User): Promise<User | null> {

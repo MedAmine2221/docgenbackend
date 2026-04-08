@@ -3,7 +3,7 @@ import { AuthPayloadDTO } from '../dto/auth.dto';
 import { UserService } from 'src/user/service/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class AuthService {
   constructor(
@@ -19,7 +19,7 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    if (password !== findUser.password) {
+    if (!(await bcrypt.compare(password, findUser.password))) {
       throw new UnauthorizedException('Invalid password');
     }
 
