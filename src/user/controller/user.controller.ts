@@ -14,6 +14,7 @@ import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { RoleGuard } from 'src/roles/guard/role.guard';
 import { Roles } from 'src/roles/roles.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { ChangePasswordDto } from '../dto/forgetPass.dto';
 
 @UseGuards(AuthGuard, RoleGuard)
 @ApiBearerAuth('access-token')
@@ -47,6 +48,14 @@ export class UserController {
     @Body() user: User,
   ): Promise<User | null> {
     return this.userService.update(id, user);
+  }
+
+  @Put(':id')
+  async changePassword(
+    @Param('id') id: string,
+    @Body() data: ChangePasswordDto,
+  ): Promise<User | null> {
+    return this.userService.changePassword(id, data);
   }
 
   @Delete(':id')

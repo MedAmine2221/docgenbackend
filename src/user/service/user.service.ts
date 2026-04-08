@@ -1,9 +1,14 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { User } from '../entity/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Roles } from 'src/roles/entity/roles.entity';
 import * as bcrypt from 'bcrypt';
+import { ChangePasswordDto } from '../dto/forgetPass.dto';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -74,6 +79,31 @@ export class UserService implements OnModuleInit {
   async update(id: string, user: User): Promise<User | null> {
     await this.userRepository.update(id, user);
     return this.findById(id);
+  }
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User Not Found');
+    }
+
+    const isMatch = await bcrypt.compare(
+      changePasswordDto.oldPassword,
+      user.password,
+    );
+
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid current password');
+    }
+
+    user.password = await bcrypt.hash(changePasswordDto.newPassword, 10);
+
+    return await this.userRepository.save(user);
   }
 
   async delete(id: number): Promise<void> {
