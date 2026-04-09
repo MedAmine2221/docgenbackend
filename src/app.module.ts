@@ -12,6 +12,7 @@ import { UserService } from './user/service/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { UserModule } from './user/module/user.module';
 import { RolesModule } from './roles/module/roles.module';
+import { EmailModule } from './email/module/email.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { RolesModule } from './roles/module/roles.module';
     AuthModule,
     UserModule,
     RolesModule,
+    EmailModule,
   ],
   controllers: [UserController, AuthController],
   providers: [AuthService, UserService, JwtService],

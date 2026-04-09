@@ -9,6 +9,8 @@ import { Repository } from 'typeorm';
 import { Roles } from 'src/roles/entity/roles.entity';
 import * as bcrypt from 'bcrypt';
 import { ChangePasswordDto } from '../dto/forgetPass.dto';
+import { EmailService } from 'src/email/service/email.service';
+import { buildForgotPasswordEmail } from 'src/utils/functions';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -108,5 +110,31 @@ export class UserService implements OnModuleInit {
 
   async delete(id: number): Promise<void> {
     await this.userRepository.delete(id);
+  }
+  async forgotPassword(
+    email: string,
+    emailService: EmailService,
+  ): Promise<{ message: string }> {
+    const user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user) {
+      throw new UnauthorizedException('Aucun compte associé à cet email');
+    }
+
+    // Générer un mot de passe aléatoire
+    const newPassword = Math.random().toString(36).slice(-8) + 'A1!';
+    user.password = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.save(user);
+
+    // Envoyer l'email
+    await emailService.sendEmail({
+      to: email,
+      object: 'Réinitialisation de votre mot de passe DocGen',
+      html: buildForgotPasswordEmail(user.name, newPassword),
+    });
+
+    return {
+      message: 'Un nouveau mot de passe a été envoyé à votre adresse email',
+    };
   }
 }
