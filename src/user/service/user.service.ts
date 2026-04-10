@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { ChangePasswordDto } from '../dto/forgetPass.dto';
 import { EmailService } from 'src/email/service/email.service';
 import { buildForgotPasswordEmail } from 'src/utils/functions';
+import { CreateUserDTO } from '../dto/createUser.dto';
 
 @Injectable()
 export class UserService implements OnModuleInit {
@@ -67,7 +68,7 @@ export class UserService implements OnModuleInit {
     return user;
   }
 
-  async create(user: User): Promise<User> {
+  async create(user: CreateUserDTO): Promise<User> {
     const { password, ...userData } = user;
 
     const hashedPassword = await bcrypt.hash(password, 10);

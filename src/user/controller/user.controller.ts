@@ -17,6 +17,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { ChangePasswordDto } from '../dto/forgetPass.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { EmailService } from 'src/email/service/email.service';
+import { CreateUserDTO } from '../dto/createUser.dto';
 
 @Controller('users')
 export class UserController {
@@ -53,7 +54,7 @@ export class UserController {
   @ApiBearerAuth('access-token')
   @Roles('ADMIN')
   @Post()
-  async createUser(@Body() user: User): Promise<User> {
+  async createUser(@Body() user: CreateUserDTO): Promise<User> {
     return this.userService.create(user);
   }
 
