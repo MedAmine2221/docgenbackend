@@ -13,6 +13,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UserModule } from './user/module/user.module';
 import { RolesModule } from './roles/module/roles.module';
 import { EmailModule } from './email/module/email.module';
+import { DocsModule } from './docs/module/docs.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { EmailModule } from './email/module/email.module';
     TypeOrmModule.forFeature([User]),
     AuthModule,
     UserModule,
+    DocsModule,
     RolesModule,
     EmailModule,
   ],

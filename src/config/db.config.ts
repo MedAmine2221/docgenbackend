@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { Docs } from 'src/docs/entity/docs.entity';
 import { Roles } from 'src/roles/entity/roles.entity';
 import { User } from 'src/user/entity/user.entity';
 
@@ -15,7 +16,7 @@ export default (configService: ConfigService): TypeOrmModuleOptions => {
     ssl: databaseUrl.includes('localhost')
       ? false
       : { rejectUnauthorized: false },
-    entities: [User, Roles],
+    entities: [User, Roles, Docs],
     synchronize: true,
   };
 };
