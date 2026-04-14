@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -38,7 +39,7 @@ export class EmailService {
         info,
       };
     } catch (error) {
-      throw new Error('Erreur lors de l’envoi de l’email: ' + error.message);
+      throw new Error('Erreur lors de l’envoi de l’email: ' + error?.message);
     }
   }
 }

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { Roles } from '../entity/roles.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';

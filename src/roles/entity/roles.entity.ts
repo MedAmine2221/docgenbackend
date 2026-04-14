@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { MinLength } from 'class-validator';
 import { User } from 'src/user/entity/user.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';

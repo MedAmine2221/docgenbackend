@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 export enum ApiMethod {
   POST = 'POST',
   GET = 'GET',

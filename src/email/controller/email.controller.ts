@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Body, Controller, Post } from '@nestjs/common';
 import { EmailService } from '../service/email.service';
 import { sendEmailDto } from '../dto/email.dto';

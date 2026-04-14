@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { IsNotEmpty, MinLength } from 'class-validator';
 
 export class ChangePasswordDto {
@@ -5,5 +6,6 @@ export class ChangePasswordDto {
   oldPassword: string;
 
   @MinLength(8)
+  @IsNotEmpty()
   newPassword: string;
 }

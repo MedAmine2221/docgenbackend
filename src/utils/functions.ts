@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 export function buildForgotPasswordEmail(
   name: string,
   newPassword: string,
