@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable prettier/prettier */
 import {
   Body,
@@ -7,6 +10,7 @@ import {
   Param,
   Post,
   Put,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { User } from 'src/user/entity/user.entity';
@@ -34,7 +38,15 @@ export class UserController {
   async findAllUsers(): Promise<User[]> {
     return this.userService.findAll();
   }
-
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('access-token')
+  @Get('me')
+  async getMe(@Req() req: Request): Promise<User | null> {
+    console.log(req);
+    
+    const email = req['decodedData'].email;
+    return this.userService.getMe(email);
+  }
   @UseGuards(AuthGuard, RoleGuard)
   @ApiBearerAuth('access-token')
   @Roles('ADMIN')

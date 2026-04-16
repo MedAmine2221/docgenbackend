@@ -139,4 +139,10 @@ export class UserService implements OnModuleInit {
       message: 'Un nouveau mot de passe a été envoyé à votre adresse email',
     };
   }
+  async getMe(email: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { email },
+      relations: ['role'],
+    });
+  }
 }
