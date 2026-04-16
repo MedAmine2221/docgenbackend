@@ -4,6 +4,7 @@ import { Docs } from '../entity/docs.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateDocDTO } from '../dto/createDoc.dto';
+import { UpdateDocDTO } from '../dto/updateDoc.dto';
 
 @Injectable()
 export class DocsService {
@@ -50,11 +51,22 @@ export class DocsService {
     return this.docsRepository.save(newDoc);
   }
 
-  async update(id: string, doc: Partial<Docs>): Promise<Docs | null> {
+  async update(id: string, doc: UpdateDocDTO): Promise<Docs | null> {
     const existing = await this.findById(id);
     if (!existing) return null;
-
-    const updated = this.docsRepository.merge(existing, doc);
+    console.log("doc ===============> ",doc);
+    
+    const updated = this.docsRepository.merge(existing, {
+      name: doc.name,
+      description: doc.description,
+      submissionDate: doc.submissionDate,
+      status: doc.status,
+      baseUrl: doc.baseUrl,
+      apiMethod: doc.apiMethod,
+      commonHeader: doc.commonHeader,
+      bearerToken: doc.bearerToken,
+      created_by: { id: doc.created_by },
+    } as unknown as Partial<Docs>);
     return this.docsRepository.save(updated);
   }
 

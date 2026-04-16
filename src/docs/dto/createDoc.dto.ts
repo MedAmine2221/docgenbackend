@@ -58,7 +58,7 @@ export class CreateDocDTO {
   @IsOptional()
   bearerToken?: string;
 
-  @ApiProperty({ example: 42 })
+  @ApiProperty({ example: 1 })
   @IsNotEmpty()
   @IsNumber()
   created_by: number;

@@ -16,6 +16,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { CreateDocDTO } from '../dto/createDoc.dto';
 import { DocsService } from '../service/docs.service';
 import { Docs } from '../entity/docs.entity';
+import { UpdateDocDTO } from '../dto/updateDoc.dto';
 @Controller('docs')
 @UseGuards(AuthGuard, RoleGuard)
 @ApiBearerAuth('access-token')
@@ -50,7 +51,7 @@ export class DocsController {
   @Put(':id')
   async updateDoc(
     @Param('id') id: string,
-    @Body() doc: Partial<Docs>,
+    @Body() doc: UpdateDocDTO,
   ): Promise<Docs | null> {
     return this.docsService.update(id, doc);
   }
