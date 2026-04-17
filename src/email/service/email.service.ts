@@ -41,7 +41,7 @@ export class EmailService {
         message: 'Email envoyé avec succès',
         info,
       };
-    } catch (error) {
+    } catch (error: any) {
       throw new Error('Erreur lors de l’envoi de l’email: ' + error?.message);
     }
   }
