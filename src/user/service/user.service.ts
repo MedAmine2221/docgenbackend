@@ -142,7 +142,7 @@ export class UserService implements OnModuleInit {
   async getMe(email: string): Promise<User | null> {
     return this.userRepository.findOne({
       where: { email },
-      relations: ['role'],
+      relations: ['role', 'docs'],
     });
   }
 }
