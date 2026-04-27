@@ -7,7 +7,6 @@ import {
 import { User } from '../entity/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Roles } from 'src/roles/entity/roles.entity';
 import * as bcrypt from 'bcrypt';
 import { ChangePasswordDto } from '../dto/forgetPass.dto';
 import { EmailService } from 'src/email/service/email.service';
@@ -21,35 +20,35 @@ export class UserService implements OnModuleInit {
     private readonly userRepository: Repository<User>,
   ) {}
   async onModuleInit() {
-    const adminRole = await this.userRepository.manager
-      .getRepository(Roles)
-      .findOne({ where: { name_fr: 'ADMIN' } });
-    if (!adminRole) throw new Error('Admin role not found');
+    // const adminRole = await this.userRepository.manager
+    //   .getRepository(Roles)
+    //   .findOne({ where: { name_fr: 'ADMIN' } });
+    // if (!adminRole) throw new Error('Admin role not found');
 
-    const users = [
-      {
-        name: 'BOUKADIDA Zeineb',
-        email: 'zeinebmeriem.boukadida@polytechnicien.tn',
-        password: await bcrypt.hash('Admin@123', 10),
-        role: adminRole,
-      },
-      {
-        name: 'LAZREG Mohamed Amine',
-        email: 'lazregamine258@gmail.com',
-        password: await bcrypt.hash('Admin@123', 10),
-        role: adminRole,
-      },
-    ];
+    // const users = [
+    //   {
+    //     name: 'BOUKADIDA Zeineb',
+    //     email: 'zeinebmeriem.boukadida@polytechnicien.tn',
+    //     password: await bcrypt.hash('Admin@123', 10),
+    //     role: adminRole,
+    //   },
+    //   {
+    //     name: 'LAZREG Mohamed Amine',
+    //     email: 'lazregamine258@gmail.com',
+    //     password: await bcrypt.hash('Admin@123', 10),
+    //     role: adminRole,
+    //   },
+    // ];
 
-    for (const user of users) {
-      const exists = await this.userRepository.findOne({
-        where: { email: user.email },
-      });
-      if (!exists) {
-        const newUser = this.userRepository.create({ ...user });
-        await this.userRepository.save(newUser);
-      }
-    }
+    // for (const user of users) {
+    //   const exists = await this.userRepository.findOne({
+    //     where: { email: user.email },
+    //   });
+    //   if (!exists) {
+    //     const newUser = this.userRepository.create({ ...user });
+    //     await this.userRepository.save(newUser);
+    //   }
+    // }
   }
 
   findAll(): Promise<User[]> {

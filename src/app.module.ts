@@ -15,9 +15,11 @@ import { RolesModule } from "./roles/module/roles.module";
 import { EmailModule } from "./email/module/email.module";
 import { DocsModule } from "./docs/module/docs.module";
 import { ApiModule } from "./api/module/api.module";
+import { SeederModule } from "./seeder/seeder.module";
 
 @Module({
   imports: [
+    SeederModule,
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
