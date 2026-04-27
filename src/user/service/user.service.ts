@@ -81,7 +81,10 @@ export class UserService implements OnModuleInit {
 
   async update(id: string, user: User): Promise<User | null> {
     await this.userRepository.update(id, user);
-    return this.findById(id);
+    return await this.userRepository.findOne({
+      where: {id},
+      relations: ['role', 'docs'],
+    });
   }
   async changePassword(
     userId: string,
