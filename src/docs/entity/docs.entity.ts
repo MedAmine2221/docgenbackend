@@ -1,16 +1,18 @@
 /* eslint-disable prettier/prettier */
+import { Api } from 'src/api/entity/api.entity';
 import { User } from 'src/user/entity/user.entity';
 import {
   Column,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity()
 export class Docs {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
@@ -29,19 +31,15 @@ export class Docs {
   baseUrl: string;
 
   @Column()
-  apiMethod: string;
-
-  @Column()
   commonHeader: string;
 
   @Column()
   bearerToken: string;
 
-  @ManyToOne('User', 'docs')
-  @JoinColumn({ name: 'doc_creator' })
+  @ManyToOne(() => User, (user) => user.docs)
+  @JoinColumn({ name: 'user_creator' })
   created_by: User;
 
-  // @ManyToOne(() => User, (user) => user.docs)
-  // @JoinColumn({ name: 'client_id' })
-  // client_id: User;
+  @OneToMany(() => Api, (api) => api.doc, { cascade: true })
+  apis: Api[];
 }

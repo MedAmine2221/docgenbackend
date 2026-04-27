@@ -7,9 +7,11 @@ import { DocsController } from '../controller/docs.controller';
 import { Docs } from '../entity/docs.entity';
 import { UserModule } from 'src/user/module/user.module';
 import { AuthModule } from 'src/auth/module/auth.module';
+import { ApiModule } from 'src/api/module/api.module';
+import { Api } from 'src/api/entity/api.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Docs]), UserModule, AuthModule],
+  imports: [TypeOrmModule.forFeature([Docs, Api]), UserModule, AuthModule, ApiModule],
   controllers: [DocsController],
   providers: [UserService, DocsService],
   exports: [DocsService],

@@ -17,6 +17,7 @@ import { CreateDocDTO } from '../dto/createDoc.dto';
 import { DocsService } from '../service/docs.service';
 import { Docs } from '../entity/docs.entity';
 import { UpdateDocDTO } from '../dto/updateDoc.dto';
+
 @Controller('docs')
 @UseGuards(AuthGuard, RoleGuard)
 @ApiBearerAuth('access-token')

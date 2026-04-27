@@ -1,6 +1,6 @@
-import { MinLength } from 'class-validator';
-import { Docs } from 'src/docs/entity/docs.entity';
-import { Roles } from 'src/roles/entity/roles.entity';
+import { MinLength } from "class-validator";
+import { Docs } from "src/docs/entity/docs.entity";
+import { Roles } from "src/roles/entity/roles.entity";
 import {
   Column,
   Entity,
@@ -8,7 +8,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-} from 'typeorm';
+} from "typeorm";
 
 @Entity()
 export class User {
@@ -26,10 +26,10 @@ export class User {
   password: string;
 
   @ManyToOne(() => Roles, (role) => role.users)
-  @JoinColumn({ name: 'role_id' })
+  @JoinColumn({ name: "role_id" })
   role: Roles;
 
-  @OneToMany('Docs', 'created_by')
+  @OneToMany(() => Docs, (docs) => docs.created_by)
   docs: Docs[];
 
   // @OneToMany(() => Docs, (doc) => doc.client_id)
