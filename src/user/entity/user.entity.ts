@@ -29,7 +29,7 @@ export class User {
   @JoinColumn({ name: "role_id" })
   role: Roles;
 
-  @OneToMany(() => Docs, (docs) => docs.created_by)
+  @OneToMany(() => Docs, (docs) => docs.user_creator)
   docs: Docs[];
 
   // @OneToMany(() => Docs, (doc) => doc.client_id)

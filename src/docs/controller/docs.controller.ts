@@ -30,25 +30,27 @@ export class DocsController {
     return this.docsService.findAll();
   }
 
-  @Roles('ADMIN', 'DEVELOPER')
+  @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Get('created-by/:userId')
   async getDocsByCreator(@Param('userId') userId: string): Promise<Docs[]> {
     return this.docsService.findByCreatedBy(userId);
   }
 
-  @Roles('ADMIN', 'DEVELOPER')
+  @Roles('ADMIN')
   @Get(':id')
   async findDocById(@Param('id') id: string): Promise<Docs | null> {
     return this.docsService.findById(id);
   }
 
-  @Roles('ADMIN', 'DEVELOPER')
+  @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Post()
   async createDoc(@Body() doc: CreateDocDTO): Promise<Docs> {
+    console.log("doc ==========+++> ",doc);
+    
     return this.docsService.create(doc);
   }
 
-  @Roles('ADMIN', 'DEVELOPER')
+  @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Put(':id')
   async updateDoc(
     @Param('id') id: string,
@@ -57,9 +59,9 @@ export class DocsController {
     return this.docsService.update(id, doc);
   }
 
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Delete(':id')
-  async deleteDoc(@Param('id') id: string): Promise<void> {
+  async deleteDoc(@Param('id') id: string): Promise<void> {    
     return this.docsService.delete(id);
   }
 }

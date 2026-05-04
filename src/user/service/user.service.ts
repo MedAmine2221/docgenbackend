@@ -142,9 +142,14 @@ export class UserService implements OnModuleInit {
     };
   }
   async getMe(email: string): Promise<User | null> {
-    return this.userRepository.findOne({
+    console.log(email);
+    
+    const result = await this.userRepository.findOne({
       where: { email },
       relations: ['role', 'docs'],
     });
+    console.log("resuuuuuuuuuuuult ", result);
+    
+    return result;
   }
 }

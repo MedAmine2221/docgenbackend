@@ -41,11 +41,12 @@ export class UserController {
   @UseGuards(AuthGuard)
   @ApiBearerAuth('access-token')
   @Get('me')
-  async getMe(@Req() req: Request): Promise<User | null> {
-    console.log(req);
-    
+  async getMe(@Req() req: Request): Promise<User | null> {    
     const email = req['decodedData'].email;
-    return this.userService.getMe(email);
+    const result = await this.userService.getMe(email);
+    console.log("result ===> ",result);
+    
+    return result;
   }
   @UseGuards(AuthGuard, RoleGuard)
   @ApiBearerAuth('access-token')

@@ -18,14 +18,14 @@ export class ApiService {
 
   findAll(): Promise<Api[]> {
     return this.apiRepository.find({
-      relations: ['doc', 'doc.created_by'],
+      relations: ['doc', 'doc.user_creator'],
     });
   }
 
   findById(id: string): Promise<Api | null> {
     return this.apiRepository.findOne({
       where: { id },
-      relations: ['doc', 'doc.created_by'],
+      relations: ['doc', 'doc.user_creator'],
     });
   }
 

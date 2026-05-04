@@ -38,7 +38,7 @@ export class Docs {
 
   @ManyToOne(() => User, (user) => user.docs)
   @JoinColumn({ name: 'user_creator' })
-  created_by: User;
+  user_creator: User;
 
   @OneToMany(() => Api, (api) => api.doc, { cascade: true })
   apis: Api[];

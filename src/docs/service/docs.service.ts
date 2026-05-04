@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Docs } from '../entity/docs.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -19,31 +19,33 @@ export class DocsService {
 
   findAll(): Promise<Docs[]> {
     return this.docsRepository.find({
-      relations: ['created_by', 'apis'],
+      relations: ['user_creator', 'apis'],
     });
   }
 
   findById(id: string): Promise<Docs | null> {
     return this.docsRepository.findOne({
       where: { id },
-      relations: ['created_by', 'apis'],
+      relations: ['user_creator', 'apis'],
     });
   }
 
   findByCreatedBy(userId: string): Promise<Docs[]> {
     return this.docsRepository.find({
       where: {
-        created_by: { id: userId },
+        user_creator: { id: userId },
       },
-      relations: ['created_by', 'apis'],
+      relations: ['user_creator', 'apis'],
     });
   }
 
   async create(doc: CreateDocDTO): Promise<Docs> {
+    console.log("dooc ", doc);
+    
     // Vérifier qu'il y a au moins une API
-    if (!doc.apis || doc.apis.length === 0) {
-      throw new BadRequestException('Un document doit contenir au moins une API');
-    }
+    // if (!doc.apis || doc.apis.length === 0) {
+    //   throw new BadRequestException('Un document doit contenir au moins une API');
+    // }
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -59,22 +61,11 @@ export class DocsService {
         baseUrl: doc.baseUrl,
         commonHeader: doc.commonHeader,
         bearerToken: doc.bearerToken,
-        created_by: { id: doc.created_by },
+        user_creator: { id: doc.user_creator },
+        // apis: doc.apis
       });
 
       const savedDoc = await queryRunner.manager.save(newDoc);
-
-      // Créer les APIs liées au document
-      const apis = doc.apis.map(apiDto => 
-        this.apiRepository.create({
-          apiMethod: apiDto.apiMethod,
-          endPoint: apiDto.endPoint,
-          doc: savedDoc,
-        })
-      );
-
-      const savedApis = await queryRunner.manager.save(apis);
-      savedDoc.apis = savedApis;
 
       await queryRunner.commitTransaction();
       return savedDoc;
@@ -104,28 +95,10 @@ export class DocsService {
         baseUrl: doc.baseUrl,
         commonHeader: doc.commonHeader,
         bearerToken: doc.bearerToken,
-        created_by: doc.created_by ? { id: doc.created_by } : existing.created_by,
+        user_creator: doc.user_creator ? { id: doc.user_creator } : existing.user_creator,
       });
 
-      const savedDoc = await queryRunner.manager.save(updated);
-
-      // Si des APIs sont fournies dans la mise à jour
-      if (doc.apis && doc.apis.length > 0) {
-        // Supprimer les anciennes APIs
-        await queryRunner.manager.delete(Api, { doc: { id } });
-        
-        // Créer les nouvelles APIs
-        const apis = doc.apis.map(apiDto =>
-          this.apiRepository.create({
-            apiMethod: apiDto.apiMethod,
-            endPoint: apiDto.endPoint,
-            doc: savedDoc,
-          })
-        );
-        
-        await queryRunner.manager.save(apis);
-      }
-
+      await queryRunner.manager.save(updated);
       await queryRunner.commitTransaction();
       return this.findById(id);
     } catch (error) {

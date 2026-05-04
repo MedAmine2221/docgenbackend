@@ -30,19 +30,19 @@ export class ApiController {
     return this.apiService.findAll();
   }
 
-  @Roles('ADMIN', 'DEVELOPER')
+  @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Get('doc/:docId')
   async getApisByDoc(@Param('docId') docId: string): Promise<Api[]> {
     return this.apiService.findByDoc(docId);
   }
 
-  @Roles('ADMIN', 'DEVELOPER')
+  @Roles('ADMIN')
   @Get(':id')
   async findApiById(@Param('id') id: string): Promise<Api | null> {
     return this.apiService.findById(id);
   }
 
-  @Roles('ADMIN', 'DEVELOPER')
+  @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Post('doc/:docId')
   async createApi(
     @Param('docId') docId: string,
@@ -51,7 +51,7 @@ export class ApiController {
     return this.apiService.create(api, docId);
   }
 
-  @Roles('ADMIN', 'DEVELOPER')
+  @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Put(':id')
   async updateApi(
     @Param('id') id: string,
@@ -60,7 +60,7 @@ export class ApiController {
     return this.apiService.update(id, api);
   }
 
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Delete(':id')
   async deleteApi(@Param('id') id: string): Promise<void> {
     return this.apiService.delete(id);

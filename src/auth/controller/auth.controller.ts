@@ -8,6 +8,8 @@ export class AuthController {
   constructor(private authService: AuthService) {}
   @Post('login')
   login(@Body() authPayload: AuthPayloadDTO) {
+    console.log("authPayload ",authPayload);
+    
     return this.authService.validateUser(authPayload);
   }
 }
