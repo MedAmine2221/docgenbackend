@@ -1,4 +1,5 @@
 import { MinLength } from "class-validator";
+import { Activity_Log } from "src/activity_log/entity/activity_log.entity";
 import { Docs } from "src/docs/entity/docs.entity";
 import { Roles } from "src/roles/entity/roles.entity";
 import {
@@ -32,6 +33,6 @@ export class User {
   @OneToMany(() => Docs, (docs) => docs.user_creator)
   docs: Docs[];
 
-  // @OneToMany(() => Docs, (doc) => doc.client_id)
-  // docs_list: Docs[];
+  @OneToMany(() => Activity_Log, (activity) => activity.user)
+  activityLog: Activity_Log[];
 }
