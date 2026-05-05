@@ -9,11 +9,13 @@ import { UserModule } from 'src/user/module/user.module';
 import { AuthModule } from 'src/auth/module/auth.module';
 import { ApiModule } from 'src/api/module/api.module';
 import { Api } from 'src/api/entity/api.entity';
+import { Activity_Log } from 'src/activity_log/entity/activity_log.entity';
+import { ActivityLogService } from 'src/activity_log/service/activity_log.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Docs, Api]), UserModule, AuthModule, ApiModule],
+  imports: [TypeOrmModule.forFeature([Docs, Api, Activity_Log]), UserModule, AuthModule, ApiModule],
   controllers: [DocsController],
-  providers: [UserService, DocsService],
+  providers: [UserService, DocsService, ActivityLogService],
   exports: [DocsService],
 })
 export class DocsModule {}
