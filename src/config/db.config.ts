@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { Activity_Log } from 'src/activity_log/entity/activity_log.entity';
 import { Api } from 'src/api/entity/api.entity';
 import { Docs } from 'src/docs/entity/docs.entity';
 import { Roles } from 'src/roles/entity/roles.entity';
@@ -18,7 +19,7 @@ export default (configService: ConfigService): TypeOrmModuleOptions => {
     ssl: databaseUrl.includes('localhost')
       ? false
       : { rejectUnauthorized: false },
-    entities: [Roles, User, Docs, Api],
+    entities: [Roles, User, Docs, Api, Activity_Log],
     synchronize: true,
   };
 };

@@ -1,13 +1,13 @@
 /* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserModule } from 'src/user/module/user.module';
 import { ActivityLogController } from '../controller/activity_log.controller';
 import { ActivityLogService } from '../service/activity_log.service';
 import { Activity_Log } from '../entity/activity_log.entity';
+import { AuthModule } from 'src/auth/module/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Activity_Log]), UserModule],
+  imports: [TypeOrmModule.forFeature([Activity_Log]), AuthModule],
   controllers: [ActivityLogController],
   providers: [ActivityLogService],
   exports: [ActivityLogService],

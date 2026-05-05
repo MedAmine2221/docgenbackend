@@ -16,6 +16,7 @@ import { EmailModule } from "./email/module/email.module";
 import { DocsModule } from "./docs/module/docs.module";
 import { ApiModule } from "./api/module/api.module";
 import { SeederModule } from "./seeder/seeder.module";
+import { ActivityLogModule } from "./activity_log/module/activity_log.module";
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { SeederModule } from "./seeder/seeder.module";
     RolesModule,
     EmailModule,
     ApiModule,
+    ActivityLogModule,
   ],
   controllers: [UserController, AuthController],
   providers: [AuthService, UserService, JwtService],
