@@ -40,12 +40,6 @@ export class DocsService {
   }
 
   async create(doc: CreateDocDTO): Promise<Docs> {
-    console.log("dooc ", doc);
-    
-    // Vérifier qu'il y a au moins une API
-    // if (!doc.apis || doc.apis.length === 0) {
-    //   throw new BadRequestException('Un document doit contenir au moins une API');
-    // }
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -62,7 +56,6 @@ export class DocsService {
         commonHeader: doc.commonHeader,
         bearerToken: doc.bearerToken,
         user_creator: { id: doc.user_creator },
-        // apis: doc.apis
       });
 
       const savedDoc = await queryRunner.manager.save(newDoc);

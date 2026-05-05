@@ -36,7 +36,7 @@ export class DocsController {
     return this.docsService.findByCreatedBy(userId);
   }
 
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Get(':id')
   async findDocById(@Param('id') id: string): Promise<Docs | null> {
     return this.docsService.findById(id);
@@ -45,7 +45,6 @@ export class DocsController {
   @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Post()
   async createDoc(@Body() doc: CreateDocDTO): Promise<Docs> {
-    console.log("doc ==========+++> ",doc);
     
     return this.docsService.create(doc);
   }
