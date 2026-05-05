@@ -7,9 +7,7 @@ import { AuthService } from '../service/auth.service';
 export class AuthController {
   constructor(private authService: AuthService) {}
   @Post('login')
-  login(@Body() authPayload: AuthPayloadDTO) {
-    console.log("authPayload ",authPayload);
-    
+  login(@Body() authPayload: AuthPayloadDTO) {    
     return this.authService.validateUser(authPayload);
   }
 }

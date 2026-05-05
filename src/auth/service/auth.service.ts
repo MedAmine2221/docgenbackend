@@ -22,9 +22,7 @@ export class AuthService {
 
     if (!(await bcrypt.compare(password, findUser.password))) {
       throw new UnauthorizedException("Invalid password");
-    }
-    console.log("findUser ",findUser);
-    
+    }    
     return {
       userInfo: findUser,
       access_token: await this.jwtService.signAsync(

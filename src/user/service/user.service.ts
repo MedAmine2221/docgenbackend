@@ -141,14 +141,11 @@ export class UserService implements OnModuleInit {
       message: 'Un nouveau mot de passe a été envoyé à votre adresse email',
     };
   }
-  async getMe(email: string): Promise<User | null> {
-    console.log(email);
-    
+  async getMe(email: string): Promise<User | null> {    
     const result = await this.userRepository.findOne({
       where: { email },
       relations: ['role', 'docs', 'docs.apis'],
     });
-    console.log("resuuuuuuuuuuuult ", result);
     
     return result;
   }

@@ -44,7 +44,6 @@ export class UserController {
   async getMe(@Req() req: Request): Promise<User | null> {    
     const email = req['decodedData'].email;
     const result = await this.userService.getMe(email);
-    console.log("result ===> ",result);
     
     return result;
   }

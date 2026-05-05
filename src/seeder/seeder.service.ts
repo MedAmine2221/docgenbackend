@@ -17,7 +17,6 @@ export class SeederService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap() {
-    console.log('🌱 Seeding database...');
 
     // 1. Seed Roles
     let adminRole = await this.rolesRepo.findOne({
@@ -29,7 +28,6 @@ export class SeederService implements OnApplicationBootstrap {
         name_fr: 'ADMIN',
         name_eng: 'ADMIN',
       });
-      console.log('✅ ADMIN role created');
     }
 
     let devRole = await this.rolesRepo.findOne({
@@ -41,7 +39,6 @@ export class SeederService implements OnApplicationBootstrap {
         name_fr: 'DÉVELOPPEUR',
         name_eng: 'DEVELOPER',
       });
-      console.log('✅ DEVELOPER role created');
     }
 
     // 2. Seed Users
@@ -68,9 +65,7 @@ export class SeederService implements OnApplicationBootstrap {
         },]
       );
 
-      console.log('✅ Admins users created');
     }
 
-    console.log('🌱 Seeding finished');
   }
 }
