@@ -146,7 +146,7 @@ export class UserService implements OnModuleInit {
     
     const result = await this.userRepository.findOne({
       where: { email },
-      relations: ['role', 'docs'],
+      relations: ['role', 'docs', 'docs.apis'],
     });
     console.log("resuuuuuuuuuuuult ", result);
     
