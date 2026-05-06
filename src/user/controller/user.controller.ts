@@ -67,8 +67,9 @@ export class UserController {
   @ApiBearerAuth('access-token')
   @Roles('ADMIN')
   @Post()
-  async createUser(@Body() user: CreateUserDTO): Promise<User> {
-    return this.userService.create(user);
+  async createUser(@Req() req: Request, @Body() user: CreateUserDTO): Promise<User> {
+    const email = req['decodedData'].email;
+    return this.userService.create(user, email);
   }
 
   @UseGuards(AuthGuard, RoleGuard)
@@ -76,10 +77,12 @@ export class UserController {
   @Roles('ADMIN')
   @Put(':id')
   async updateUser(
+    @Req() req: Request,
     @Param('id') id: string,
     @Body() user: User,
   ): Promise<User | null> {
-    return this.userService.update(id, user);
+    const email = req['decodedData'].email;
+    return this.userService.update(id, user, email);
   }
 
   @UseGuards(AuthGuard, RoleGuard)
@@ -102,7 +105,8 @@ export class UserController {
   @ApiBearerAuth('access-token')
   @Roles('ADMIN')
   @Delete(':id')
-  async deleteUser(@Param('id') id: number): Promise<void> {
-    return this.userService.delete(id);
+  async deleteUser(@Req() req: Request, @Param('id') id: number): Promise<void> {
+    const email = req['decodedData'].email;
+    return this.userService.delete(id, email);
   }
 }

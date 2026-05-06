@@ -39,34 +39,40 @@ export class UserService implements OnModuleInit {
     });
   }
 
-  async create(user: CreateUserDTO): Promise<User> {
+  async create(user: CreateUserDTO, actionCreatorEmail: string): Promise<User> {
     const { password, ...userData } = user;
     const hashedPassword = await bcrypt.hash(password, 10);
     const saved = await this.userRepository.save({ ...userData, password: hashedPassword });
-
+    const actionCreator = await this.findUserByMail(actionCreatorEmail);
+    if (!actionCreator) {
+      throw new UnauthorizedException('Action creator not found');
+    }
     await this.activityLogService.create({
-      description: `Création du compte pour ${saved.name}`,
+      description: `Création du compte pour ${JSON.stringify(saved)}`,
       dateAction: new Date(),
       typeAction: 'CREATE_USER',
-      user: saved,
+      user: actionCreator,
     });
 
     return saved;
   }
 
-  async update(id: string, user: User): Promise<User | null> {
+  async update(id: string, user: User, email: string): Promise<User | null> {
     await this.userRepository.update(id, user);
     const updated = await this.userRepository.findOne({
       where: { id },
       relations: ['role', 'docs'],
     });
-
+    const actionCreator = await this.findUserByMail(email);
+    if (!actionCreator) {
+      throw new UnauthorizedException('Action creator not found');
+    }
     if (updated) {
       await this.activityLogService.create({
-        description: `Mise à jour du profil de ${updated.name}`,
+        description: `Mise à jour du profil de ${JSON.stringify(updated)}`,
         dateAction: new Date(),
         typeAction: 'UPDATE_USER',
-        user: updated,
+        user: actionCreator,
       });
     }
 
@@ -94,18 +100,22 @@ export class UserService implements OnModuleInit {
     return saved;
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(id: number, email: string): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id: id as any } });
-    await this.userRepository.delete(id);
-
     if (user) {
+      const actionCreator = await this.findUserByMail(email);
+      if (!actionCreator) {
+        throw new UnauthorizedException('Action creator not found');
+      }
       await this.activityLogService.create({
-        description: `Suppression du compte de ${user.name}`,
+        description: `Suppression du compte de ${JSON.stringify(user)}`,
         dateAction: new Date(),
         typeAction: 'DELETE_USER',
-        user,
+        user: actionCreator,
       });
     }
+    await this.userRepository.delete(id);
+
   }
 
   async forgotPassword(email: string, emailService: EmailService): Promise<{ message: string }> {
