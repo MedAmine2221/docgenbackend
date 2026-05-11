@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable prettier/prettier */
 import {
   Injectable,
@@ -58,6 +59,10 @@ export class UserService implements OnModuleInit {
   }
 
   async update(id: string, user: User, email: string): Promise<User | null> {
+    const old = await this.userRepository.findOne({
+      where: { id },
+      relations: ['role', 'docs'],
+    })
     await this.userRepository.update(id, user);
     const updated = await this.userRepository.findOne({
       where: { id },
@@ -69,7 +74,9 @@ export class UserService implements OnModuleInit {
     }
     if (updated) {
       await this.activityLogService.create({
-        description: `Mise à jour du profil de ${JSON.stringify(updated)}`,
+        description: `Mise à jour du profil.
+        Anciennes données : ${JSON.stringify(old)}
+        Nouvelles données : ${JSON.stringify(updated)}`,
         dateAction: new Date(),
         typeAction: 'UPDATE_USER',
         user: actionCreator,

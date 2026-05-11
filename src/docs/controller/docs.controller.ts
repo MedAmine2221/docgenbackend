@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prettier/prettier */
 import {
   Body,
@@ -7,6 +10,7 @@ import {
   Param,
   Post,
   Put,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
@@ -44,23 +48,26 @@ export class DocsController {
 
   @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Post()
-  async createDoc(@Body() doc: CreateDocDTO): Promise<Docs> {
-    
-    return this.docsService.create(doc);
+  async createDoc(@Req() req: Request, @Body() doc: CreateDocDTO): Promise<Docs> {
+    const email = req['decodedData'].email;
+    return this.docsService.create(doc, email);
   }
 
   @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Put(':id')
   async updateDoc(
+    @Req() req: Request,
     @Param('id') id: string,
     @Body() doc: UpdateDocDTO,
   ): Promise<Docs | null> {
-    return this.docsService.update(id, doc);
+    const email = req['decodedData'].email;
+    return this.docsService.update(id, doc, email);
   }
 
   @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Delete(':id')
-  async deleteDoc(@Param('id') id: string): Promise<void> {    
-    return this.docsService.delete(id);
+  async deleteDoc(@Req() req: Request, @Param('id') id: string): Promise<void> {   
+    const email = req['decodedData'].email; 
+    return this.docsService.delete(id, email);
   }
 }

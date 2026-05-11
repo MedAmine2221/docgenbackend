@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prettier/prettier */
 import {
   Body,
@@ -7,6 +11,7 @@ import {
   Param,
   Post,
   Put,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
@@ -45,24 +50,29 @@ export class ApiController {
   @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Post('doc/:docId')
   async createApi(
+    @Req() req: Request,
     @Param('docId') docId: string,
     @Body() api: CreateApiDTO,
   ): Promise<Api> {
-    return this.apiService.create(api, docId);
+    const email = req['decodedData'].email; 
+    return this.apiService.create(api, docId, email);
   }
 
   @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Put(':id')
   async updateApi(
+    @Req() req: Request,
     @Param('id') id: string,
     @Body() api: UpdateApiDTO,
   ): Promise<Api | null> {
-    return this.apiService.update(id, api);
+    const email = req['decodedData'].email; 
+    return this.apiService.update(id, api, email);
   }
 
   @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Delete(':id')
-  async deleteApi(@Param('id') id: string): Promise<void> {
-    return this.apiService.delete(id);
+  async deleteApi(@Req() req: Request, @Param('id') id: string): Promise<any> {
+    const email = req['decodedData'].email;
+    return this.apiService.delete(id, email);
   }
 }
