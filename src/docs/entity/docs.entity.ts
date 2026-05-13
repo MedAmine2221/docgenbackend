@@ -34,9 +34,17 @@ export class Docs {
   commonHeader: string;
 
   @Column()
+  version: string;
+
+  @Column({nullable: true})
+  cause?: string;
+
+  @Column()
   bearerToken: string;
 
-  @ManyToOne(() => User, (user) => user.docs)
+  @ManyToOne(() => User, (user) => user.docs,{
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_creator' })
   user_creator: User;
 

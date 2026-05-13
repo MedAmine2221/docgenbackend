@@ -67,7 +67,7 @@ export class UserController {
   @ApiBearerAuth('access-token')
   @Roles('ADMIN')
   @Post()
-  async createUser(@Req() req: Request, @Body() user: CreateUserDTO): Promise<User> {
+  async createUser(@Req() req: Request, @Body() user: CreateUserDTO): Promise<User | {message: string}> {
     const email = req['decodedData'].email;
     return this.userService.create(user, email);
   }

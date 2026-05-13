@@ -40,8 +40,16 @@ export class UserService implements OnModuleInit {
     });
   }
 
-  async create(user: CreateUserDTO, actionCreatorEmail: string): Promise<User> {
+  async create(user: CreateUserDTO, actionCreatorEmail: string): Promise<User | {message: string}> {
     const { password, ...userData } = user;
+    // Dans user.service.ts - méthode create
+    const existingUser = await this.userRepository.findOne({
+      where: { email: user.email }
+    });
+
+    if (existingUser) {
+      return {message : `Un utilisateur avec l'email ${user.email} existe déjà`};
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
     const saved = await this.userRepository.save({ ...userData, password: hashedPassword });
     const actionCreator = await this.findUserByMail(actionCreatorEmail);
@@ -53,6 +61,7 @@ export class UserService implements OnModuleInit {
       dateAction: new Date(),
       typeAction: 'CREATE_USER',
       user: actionCreator,
+      isRollbackable: true  
     });
 
     return saved;
@@ -80,6 +89,7 @@ export class UserService implements OnModuleInit {
         dateAction: new Date(),
         typeAction: 'UPDATE_USER',
         user: actionCreator,
+        isRollbackable: true      
       });
     }
 
@@ -102,6 +112,7 @@ export class UserService implements OnModuleInit {
       dateAction: new Date(),
       typeAction: 'CHANGE_PASSWORD',
       user: saved,
+      isRollbackable: true
     });
 
     return saved;
@@ -119,6 +130,7 @@ export class UserService implements OnModuleInit {
         dateAction: new Date(),
         typeAction: 'DELETE_USER',
         user: actionCreator,
+        isRollbackable: true
       });
     }
     await this.userRepository.delete(id);
@@ -144,6 +156,7 @@ export class UserService implements OnModuleInit {
       dateAction: new Date(),
       typeAction: 'FORGOT_PASSWORD',
       user,
+      isRollbackable: true
     });
 
     return { message: 'Un nouveau mot de passe a été envoyé à votre adresse email' };

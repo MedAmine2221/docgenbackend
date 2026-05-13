@@ -12,6 +12,9 @@ export class CreateDocDTO {
 
   @ApiProperty()
   status: string;
+  
+  @ApiProperty()
+  version: string;
 
   @ApiProperty()
   baseUrl: string;

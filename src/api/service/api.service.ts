@@ -66,33 +66,63 @@ export class ApiService {
       dateAction: new Date(),
       typeAction: 'CREATE_API',
       user: actionCreator,
+      isRollbackable: true
     });
     return this.apiRepository.save(newApi);
   }
 
-  async update(id: string, apiDto: UpdateApiDTO, email: string): Promise<Api | null> {
-    const existing = await this.findById(id);
-    if (!existing) return null;
-    const updated = this.apiRepository.merge(existing, {
-      apiMethod: apiDto.apiMethod,
-      endPoint: apiDto.endPoint,
-    });
-    const actionCreator = await this.userService.findUserByMail(email);
+  // async update(id: string, apiDto: UpdateApiDTO, email: string): Promise<Api | null> {
+  //   const existing = await this.findById(id);
+  //   if (!existing) return null;
+  //   const updated = this.apiRepository.merge(existing, {
+  //     apiMethod: apiDto.apiMethod,
+  //     endPoint: apiDto.endPoint,
+  //   });
+  //   const actionCreator = await this.userService.findUserByMail(email);
     
-    if (!actionCreator) {
-      throw new UnauthorizedException('Action creator not found');
-    }
-    await this.activityLogService.create({
-      description: `Mise à jour de l’API liée au document "${existing.doc.name}".
-      Anciennes données : ${JSON.stringify(existing)}
-      Nouvelles données : ${JSON.stringify(updated)}`,
-      dateAction: new Date(),
-      typeAction: 'UPDATE_API',
-      user: actionCreator,
-    });
-    return this.apiRepository.save(updated);
+  //   if (!actionCreator) {
+  //     throw new UnauthorizedException('Action creator not found');
+  //   }
+  //   await this.activityLogService.create({
+  //     description: `Mise à jour de l’API liée au document "${existing.doc.name}".
+  //     Anciennes données : ${JSON.stringify(existing)}
+  //     Nouvelles données : ${JSON.stringify(updated)}`,
+  //     dateAction: new Date(),
+  //     typeAction: 'UPDATE_API',
+  //     user: actionCreator,
+  //     isRollbackable: true
+  //   });
+  //   return this.apiRepository.save(updated);
+  // }
+async update(id: string, apiDto: UpdateApiDTO, email: string): Promise<Api | null> {
+  const existing = await this.findById(id);
+  if (!existing) return null;
+
+  // ✅ Cloner avant le merge
+  const oldData = { ...existing };
+
+  const updated = this.apiRepository.merge(existing, {
+    apiMethod: apiDto.apiMethod,
+    endPoint: apiDto.endPoint,
+  });
+
+  const actionCreator = await this.userService.findUserByMail(email);
+  if (!actionCreator) {
+    throw new UnauthorizedException('Action creator not found');
   }
 
+  await this.activityLogService.create({
+    description: `Mise à jour de l'API liée au document "${oldData.doc.name}".
+      Anciennes données : ${JSON.stringify(oldData)}
+      Nouvelles données : ${JSON.stringify(updated)}`,
+    dateAction: new Date(),
+    typeAction: 'UPDATE_API',
+    user: actionCreator,
+    isRollbackable: true
+  });
+
+  return this.apiRepository.save(updated);
+}
   async delete(id: string, email: string): Promise<any> {
     const existing = await this.findById(id);
     if (!existing) return null;
@@ -106,6 +136,7 @@ export class ApiService {
       dateAction: new Date(),
       typeAction: 'DELETE_API',
       user: actionCreator,
+      isRollbackable: true
     });
     return await this.apiRepository.delete(id);
   }

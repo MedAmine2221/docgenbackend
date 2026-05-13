@@ -13,5 +13,8 @@ export class CreateActivityLogDTO {
   typeAction: string;
 
   @ApiProperty()
+  isRollbackable: boolean;
+
+  @ApiProperty()
   user: User;
 }

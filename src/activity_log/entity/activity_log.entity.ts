@@ -21,7 +21,12 @@ export class Activity_Log {
   @Column()
   typeAction: string;
 
-  @ManyToOne(() => User, (user) => user.activityLog)
+  @Column({ default: false })
+  isRollbackable: boolean;
+
+  @ManyToOne(() => User, (user) => user.activityLog, {
+    onDelete: "CASCADE",
+  })
   @JoinColumn({ name: "user" })
   user: User;
 }
