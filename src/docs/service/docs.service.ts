@@ -176,57 +176,120 @@ async update(id: string, doc: UpdateDocDTO, email: string): Promise<Docs | null>
     await queryRunner.release();
   }
 }
-  async delete(id: string, email: string): Promise<void> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+  // async delete(id: string, email: string): Promise<void> {
+  //   const queryRunner = this.dataSource.createQueryRunner();
+  //   await queryRunner.connect();
+  //   await queryRunner.startTransaction();
 
-    try {
-      // 🔥 نجيب ال doc مع APIs قبل الحذف
-      const doc = await queryRunner.manager.findOne(Docs, {
-        where: { id },
-        relations: ['apis'],
-      });
+  //   try {
+  //     // 🔥 نجيب ال doc مع APIs قبل الحذف
+  //     const doc = await queryRunner.manager.findOne(Docs, {
+  //       where: { id },
+  //       relations: ['apis'],
+  //     });
 
-      if (!doc) {
-        throw new UnauthorizedException('Document not found');
-      }
+  //     if (!doc) {
+  //       throw new UnauthorizedException('Document not found');
+  //     }
 
-      // 🔥 نجيب ال actor
-      const actionCreator = await this.userService.findUserByMail(email);
-      if (!actionCreator) {
-        throw new UnauthorizedException('Action creator not found');
-      }
+  //     // 🔥 نجيب ال actor
+  //     const actionCreator = await this.userService.findUserByMail(email);
+  //     if (!actionCreator) {
+  //       throw new UnauthorizedException('Action creator not found');
+  //     }
 
-      // 🔥 log لل APIs
-      if (doc.apis && doc.apis.length > 0) {
-        await this.activityLogService.create({
-          description: `Suppression des APIs liées au document ${doc.name} : ${JSON.stringify(doc.apis)}`,
-          dateAction: new Date(),
-          typeAction: 'DELETE_API',
-          user: actionCreator,
-          isRollbackable: true
-        });
-      }
+  //     // 🔥 log لل APIs
+  //     if (doc.apis && doc.apis.length > 0) {
+  //       await this.activityLogService.create({
+  //         description: `Suppression des APIs liées au document ${doc.name} : ${JSON.stringify(doc.apis)}`,
+  //         dateAction: new Date(),
+  //         typeAction: 'DELETE_API',
+  //         user: actionCreator,
+  //         isRollbackable: true
+  //       });
+  //     }
 
+  //     await this.activityLogService.create({
+  //       description: `Suppression du document ${JSON.stringify(doc)}`,
+  //       dateAction: new Date(),
+  //       typeAction: 'DELETE_DOC',
+  //       user: actionCreator,
+  //       isRollbackable: true
+  //     });
+
+  //     await queryRunner.manager.delete(Api, { doc: { id } });
+
+  //     await queryRunner.manager.delete(Docs, id);
+
+  //     await queryRunner.commitTransaction();
+  //   } catch (error) {
+  //     await queryRunner.rollbackTransaction();
+  //     throw error;
+  //   } finally {
+  //     await queryRunner.release();
+  //   }
+  // }
+  // Dans docs.service.ts - méthode delete
+async delete(id: string, email: string): Promise<void> {
+  const queryRunner = this.dataSource.createQueryRunner();
+  await queryRunner.connect();
+  await queryRunner.startTransaction();
+
+  try {
+    // 🔥 Charger le doc avec user_creator ET apis
+    const doc = await queryRunner.manager.findOne(Docs, {
+      where: { id },
+      relations: ['apis', 'user_creator'],  // ⚠️ Ajouter 'user_creator'
+    });
+
+    if (!doc) {
+      throw new UnauthorizedException('Document not found');
+    }
+
+    // 🔥 Récupérer les infos du créateur du document
+    const docCreator = doc.user_creator;
+    const docCreatorInfo = docCreator 
+      ? `Créé par: ${docCreator.name} (Email: ${docCreator.email})` 
+      : 'Créateur inconnu';
+
+    // 🔥 Récupérer l'actionnaire (celui qui supprime)
+    const actionCreator = await this.userService.findUserByMail(email);
+    if (!actionCreator) {
+      throw new UnauthorizedException('Action creator not found');
+    }
+
+    // 🔥 Log pour les APIs avec infos du créateur du doc
+    if (doc.apis && doc.apis.length > 0) {
       await this.activityLogService.create({
-        description: `Suppression du document ${JSON.stringify(doc)}`,
+        description: `Suppression des APIs liées au document "${doc.name}" (${docCreatorInfo}). APIs supprimées : ${JSON.stringify(doc.apis)}. Suppression effectuée par: ${actionCreator.name} (${actionCreator.email})`,
         dateAction: new Date(),
-        typeAction: 'DELETE_DOC',
+        typeAction: 'DELETE_API',
         user: actionCreator,
         isRollbackable: true
       });
-
-      await queryRunner.manager.delete(Api, { doc: { id } });
-
-      await queryRunner.manager.delete(Docs, id);
-
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
     }
+
+    // 🔥 Log pour la suppression du document avec infos du créateur
+    await this.activityLogService.create({
+      description: `Suppression du document "${doc.name}" (ID: ${doc.id}). ${docCreatorInfo}. Suppression effectuée par: ${actionCreator.name} (${actionCreator.email}). Données complètes: ${JSON.stringify(doc)}`,
+      dateAction: new Date(),
+      typeAction: 'DELETE_DOC',
+      user: actionCreator,
+      isRollbackable: true
+    });
+
+    // Suppression des APIs liées
+    await queryRunner.manager.delete(Api, { doc: { id } });
+
+    // Suppression du document
+    await queryRunner.manager.delete(Docs, id);
+
+    await queryRunner.commitTransaction();
+  } catch (error) {
+    await queryRunner.rollbackTransaction();
+    throw error;
+  } finally {
+    await queryRunner.release();
   }
+}
 }
