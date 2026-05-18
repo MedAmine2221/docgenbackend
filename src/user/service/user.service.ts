@@ -14,15 +14,20 @@ import { EmailService } from 'src/email/service/email.service';
 import { buildForgotPasswordEmail } from 'src/utils/functions';
 import { CreateUserDTO } from '../dto/createUser.dto';
 import { ActivityLogService } from 'src/activity_log/service/activity_log.service';
+import { Docs } from 'src/docs/entity/docs.entity';
+import { Api } from 'src/api/entity/api.entity';
 
 @Injectable()
 export class UserService implements OnModuleInit {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Docs)
+    private readonly docRepository: Repository<Docs>,
+    @InjectRepository(Api)
+    private readonly apiRepository: Repository<Api>,
     private readonly activityLogService: ActivityLogService,
   ) {}
-
   async onModuleInit() {}
 
   findAll(): Promise<User[]> {
@@ -119,7 +124,11 @@ export class UserService implements OnModuleInit {
   }
 
   async delete(id: number, email: string): Promise<void> {
-    const user = await this.userRepository.findOne({ where: { id: id as any } });
+    const user = await this.userRepository.findOne({ 
+      where: { id: id as any },
+      relations: ['role', 'docs', 'docs.apis']  // ✅ charger toute la cascade
+    });
+
     if (user) {
       const actionCreator = await this.findUserByMail(email);
       if (!actionCreator) {
@@ -132,9 +141,19 @@ export class UserService implements OnModuleInit {
         user: actionCreator,
         isRollbackable: true
       });
-    }
-    await this.userRepository.delete(id);
 
+      // ✅ Supprimer dans l'ordre : apis → docs → user
+      for (const doc of user.docs ?? []) {
+        if (doc.apis?.length) {
+          await this.apiRepository.delete(doc.apis.map(a => a.id));
+        }
+      }
+      if (user.docs?.length) {
+        await this.docRepository.delete(user.docs.map(d => d.id));
+      }
+    }
+
+    await this.userRepository.delete(id);
   }
 
   async forgotPassword(email: string, emailService: EmailService): Promise<{ message: string }> {
