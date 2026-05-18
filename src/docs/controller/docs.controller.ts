@@ -50,7 +50,6 @@ export class DocsController {
   @Post()
   async createDoc(@Req() req: Request, @Body() doc: CreateDocDTO): Promise<Docs> {
     const email = req['decodedData'].email;
-    console.log("doc ====++++> ", doc);
     
     return this.docsService.create(doc, email);
   }
