@@ -1,5 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional } from 'class-validator';
 export class CreateDocDTO {
   @ApiProperty()
   name: string;
@@ -14,7 +15,8 @@ export class CreateDocDTO {
   status: string;
   
   @ApiProperty()
-  version: string;
+  @IsOptional()
+  version?: string;
 
   @ApiProperty()
   baseUrl: string;

@@ -55,6 +55,7 @@ export class DocsController {
   }
 
   @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
+
   @Put(':id')
   async updateDoc(
     @Req() req: Request,
@@ -62,7 +63,12 @@ export class DocsController {
     @Body() doc: UpdateDocDTO,
   ): Promise<Docs | null> {
     const email = req['decodedData'].email;
-    return this.docsService.update(id, doc, email);
+    const changeReason = doc.cause ? 
+      (doc.cause === 'Bug' ? 'bug' :
+      doc.cause === 'Nouveau EndPoint' ? 'new_endpoint' :
+      doc.cause === 'Changement du document' ? 'major_change' : undefined) 
+      : undefined;
+    return this.docsService.update(id, doc, email, changeReason);
   }
 
   @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')

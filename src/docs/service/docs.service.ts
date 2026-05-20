@@ -100,7 +100,102 @@ export class DocsService {
       await queryRunner.release();
     }
   }
-  async update(id: string, doc: UpdateDocDTO, email: string): Promise<Docs | null> {
+  // async update(id: string, doc: UpdateDocDTO, email: string): Promise<Docs | null> {
+  //   const existing = await this.findById(id);
+  //   if (!existing) return null;
+
+  //   const queryRunner = this.dataSource.createQueryRunner();
+  //   await queryRunner.connect();
+  //   await queryRunner.startTransaction();
+
+  //   try {
+  //     const oldData = { ...existing, apis: [...(existing.apis || [])] };
+
+  //     const updated = this.docsRepository.merge(existing, {
+  //       name: doc.name,
+  //       description: doc.description,
+  //       submissionDate: doc.submissionDate,
+  //       status: doc.status,
+  //       baseUrl: doc.baseUrl,
+  //       commonHeader: doc.commonHeader,
+  //       bearerToken: doc.bearerToken,
+  //       user_creator: doc.user_creator ? { id: doc.user_creator } : existing.user_creator,
+  //     });
+
+  //     const actionCreator = await this.userService.findUserByMail(email);
+  //     if (!actionCreator) {
+  //       throw new UnauthorizedException('Action creator not found');
+  //     }
+
+  //     await this.activityLogService.create({
+  //       description: `Mise à jour du document.
+  //         Anciennes données : ${JSON.stringify(oldData)}
+  //         Nouvelles données : ${JSON.stringify(updated)}`,
+  //       dateAction: new Date(),
+  //       typeAction: 'UPDATE_DOC',
+  //       user: actionCreator,
+  //       isRollbackable: true
+  //     });
+
+  //     await queryRunner.manager.save(updated);
+  //     await queryRunner.commitTransaction();
+      
+  //     if (updated) {
+  //       // ✅ Notifier le PROPRIÉTAIRE du document
+  //       const ownerEmail = existing.user_creator?.email;
+  //       this.notificationsService.notifyDocUpdated(
+  //         id,
+  //         updated.name ?? 'Sans titre',
+  //         actionCreator.email,  // Qui a fait l'action
+  //         ownerEmail,           // Propriétaire du doc
+  //       );
+  //     }
+      
+  //     return this.findById(id);
+  //   } catch (error) {
+  //     await queryRunner.rollbackTransaction();
+  //     throw error;
+  //   } finally {
+  //     await queryRunner.release();
+  //   }
+  // }
+  // Ajoutez cette méthode dans votre DocsService
+  private determineNewVersion(currentVersion: string, changeReason: 'bug' | 'new_endpoint' | 'major_change'): string {
+    // Parse la version actuelle (format: X.Y.Z)
+    const versionRegex = /^(\d+)\.(\d+)\.(\d+)$/;
+    const match = currentVersion.match(versionRegex);
+    
+    if (!match) {
+      // Si format invalide, retourne 1.0.0 par défaut
+      return '1.0.0';
+    }
+    
+    let major = parseInt(match[1], 10);
+    let minor = parseInt(match[2], 10);
+    let patch = parseInt(match[3], 10);
+    
+    switch (changeReason) {
+      case 'bug': // Correction de bug → incrémenter le PATCH (1.0.0 → 1.0.1)
+        patch++;
+        break;
+        
+      case 'new_endpoint': // Nouvel endpoint → incrémenter le MINOR, reset PATCH (1.1.5 → 1.2.0)
+        minor++;
+        patch = 0;
+        break;
+        
+      case 'major_change': // Changement majeur du doc → incrémenter le MAJOR, reset MINOR et PATCH (1.1.9 → 2.0.0)
+        major++;
+        minor = 0;
+        patch = 0;
+        break;
+    }
+    
+    return `${major}.${minor}.${patch}`;
+  }
+
+  // Modifiez votre méthode update existante
+  async update(id: string, doc: UpdateDocDTO, email: string, changeReason?: 'bug' | 'new_endpoint' | 'major_change'): Promise<Docs | null> {
     const existing = await this.findById(id);
     if (!existing) return null;
 
@@ -110,6 +205,12 @@ export class DocsService {
 
     try {
       const oldData = { ...existing, apis: [...(existing.apis || [])] };
+      
+      // Déterminer la nouvelle version si une raison de modification est fournie
+      let newVersion = existing.version;
+      if (changeReason) {
+        newVersion = this.determineNewVersion(existing.version || '1.0.0', changeReason);
+      }
 
       const updated = this.docsRepository.merge(existing, {
         name: doc.name,
@@ -120,6 +221,7 @@ export class DocsService {
         commonHeader: doc.commonHeader,
         bearerToken: doc.bearerToken,
         user_creator: doc.user_creator ? { id: doc.user_creator } : existing.user_creator,
+        version: newVersion, // Mettre à jour la version
       });
 
       const actionCreator = await this.userService.findUserByMail(email);
@@ -127,8 +229,13 @@ export class DocsService {
         throw new UnauthorizedException('Action creator not found');
       }
 
+      // Log avec la raison du changement
+      const changeReasonText = changeReason 
+        ? `Raison du changement: ${changeReason} (Version: ${existing.version} → ${newVersion})`
+        : '';
+
       await this.activityLogService.create({
-        description: `Mise à jour du document.
+        description: `Mise à jour du document. ${changeReasonText}
           Anciennes données : ${JSON.stringify(oldData)}
           Nouvelles données : ${JSON.stringify(updated)}`,
         dateAction: new Date(),
@@ -141,13 +248,12 @@ export class DocsService {
       await queryRunner.commitTransaction();
       
       if (updated) {
-        // ✅ Notifier le PROPRIÉTAIRE du document
         const ownerEmail = existing.user_creator?.email;
         this.notificationsService.notifyDocUpdated(
           id,
           updated.name ?? 'Sans titre',
-          actionCreator.email,  // Qui a fait l'action
-          ownerEmail,           // Propriétaire du doc
+          actionCreator.email,
+          ownerEmail,
         );
       }
       
@@ -159,6 +265,21 @@ export class DocsService {
       await queryRunner.release();
     }
   }
+
+// Vous pouvez aussi créer une méthode dédiée pour les corrections de bug
+async updateBugFix(id: string, doc: UpdateDocDTO, email: string): Promise<Docs | null> {
+  return this.update(id, doc, email, 'bug');
+}
+
+// Méthode dédiée pour l'ajout de nouveaux endpoints
+async updateWithNewEndpoint(id: string, doc: UpdateDocDTO, email: string): Promise<Docs | null> {
+  return this.update(id, doc, email, 'new_endpoint');
+}
+
+// Méthode dédiée pour les changements majeurs
+async updateMajorChange(id: string, doc: UpdateDocDTO, email: string): Promise<Docs | null> {
+  return this.update(id, doc, email, 'major_change');
+}
   async delete(id: string, email: string): Promise<void> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
