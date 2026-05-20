@@ -41,6 +41,17 @@ export class SeederService implements OnApplicationBootstrap {
       });
     }
 
+    let clientRole = await this.rolesRepo.findOne({
+      where: { name_fr: 'CLIENT' },
+    });
+
+    if (!clientRole) {
+      clientRole = await this.rolesRepo.save({
+        name_fr: 'CLIENT',
+        name_eng: 'CLIENT',
+      });
+    }
+
     // 2. Seed Users
     const adminZeinebExists = await this.userRepo.findOne({
       where: { email: 'zeinebmeriem.boukadida@polytechnicien.tn' },
