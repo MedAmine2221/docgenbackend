@@ -11,9 +11,10 @@ import { Docs } from 'src/docs/entity/docs.entity';
 import { ActivityLogService } from 'src/activity_log/service/activity_log.service';
 import { Activity_Log } from 'src/activity_log/entity/activity_log.entity';
 import { User } from 'src/user/entity/user.entity';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Api, Docs, Activity_Log, User]), UserModule, AuthModule],
+  imports: [TypeOrmModule.forFeature([Api, Docs, Activity_Log, User]), UserModule, AuthModule, NotificationsModule],
   controllers: [ApiController],
   providers: [DocsService, ApiService, ActivityLogService],
   exports: [ApiService],

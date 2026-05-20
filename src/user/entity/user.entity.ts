@@ -1,4 +1,3 @@
-import { MinLength } from "class-validator";
 import { Activity_Log } from "src/activity_log/entity/activity_log.entity";
 import { Docs } from "src/docs/entity/docs.entity";
 import { Roles } from "src/roles/entity/roles.entity";
@@ -17,7 +16,6 @@ export class User {
   id: string;
 
   @Column()
-  @MinLength(10)
   name: string;
 
   @Column({ unique: true })
