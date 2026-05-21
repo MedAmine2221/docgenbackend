@@ -29,4 +29,7 @@ export class CreateDocDTO {
 
   @ApiProperty()
   user_creator: string;
+  
+  @ApiProperty()
+  assignedTo: string;
 }

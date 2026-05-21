@@ -28,12 +28,16 @@ import { UpdateDocDTO } from '../dto/updateDoc.dto';
 export class DocsController {
   constructor(private readonly docsService: DocsService) {}
 
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Get()
   async findAllDocs(): Promise<Docs[]> {
     return this.docsService.findAll();
   }
-
+  @Roles('ADMIN', 'CLIENT')
+  @Get('client/:clientId')
+  async getDocsByClient(@Param('clientId') clientId: string): Promise<Docs[]> {
+    return this.docsService.findByAssignedTo(clientId);
+  }
   @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Get('created-by/:userId')
   async getDocsByCreator(@Param('userId') userId: string): Promise<Docs[]> {
@@ -77,4 +81,5 @@ export class DocsController {
     const email = req['decodedData'].email; 
     return this.docsService.delete(id, email);
   }
+  
 }

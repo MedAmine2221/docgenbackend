@@ -50,4 +50,8 @@ export class Docs {
 
   @OneToMany(() => Api, (api) => api.doc, { cascade: true })
   apis: Api[];
+
+  @ManyToOne(() => User, (user) => user.assignedDocs, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'assigned_to' })
+  assignedTo: User;
 }

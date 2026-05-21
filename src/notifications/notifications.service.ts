@@ -75,11 +75,14 @@ export class NotificationsService {
 
   // ─── Helpers doc ─────────────────────────────────────────────────
 
+  // notifications.service.ts
+
   async notifyDocCreated(
     docId: string,
     title: string,
     triggeredBy: string,
     creatorEmail?: string,
+    assignedToEmail?: string, // 👈 Ajout du client assigné
   ) {
     const payload: NotificationPayload = {
       event: "doc:created",
@@ -89,15 +92,17 @@ export class NotificationsService {
       timestamp: new Date().toISOString(),
     };
 
-    // Pour la création, notifier les admins
     const actor = await this.userService.findUserByMail(triggeredBy);
     const isAdmin = actor?.role?.name_eng?.toLowerCase().includes("admin");
 
-    if (isAdmin && creatorEmail) {
-      // Admin crée un doc pour un développeur → notifier le développeur
+    // ✅ Notifier le client assigné en priorité
+    if (assignedToEmail) {
+      this.gateway.sendToUser(assignedToEmail, payload);
+    }
+
+    if (isAdmin && creatorEmail && creatorEmail !== triggeredBy) {
       this.gateway.sendToUser(creatorEmail, payload);
     } else if (!isAdmin) {
-      // Développeur crée un doc → notifier les admins
       this.gateway.sendToAdmins(payload);
     }
   }
@@ -107,6 +112,7 @@ export class NotificationsService {
     title: string,
     triggeredBy: string,
     creatorEmail?: string,
+    assignedToEmail?: string, // 👈 Ajout du client assigné
   ) {
     const payload: NotificationPayload = {
       event: "doc:updated",
@@ -119,14 +125,16 @@ export class NotificationsService {
     const actor = await this.userService.findUserByMail(triggeredBy);
     const isAdmin = actor?.role?.name_eng?.toLowerCase().includes("admin");
 
+    // ✅ Notifier le client assigné en priorité
+    if (assignedToEmail) {
+      this.gateway.sendToUser(assignedToEmail, payload);
+    }
+
     if (isAdmin && creatorEmail && triggeredBy !== creatorEmail) {
-      // Admin modifie le doc d'un développeur → notifier le développeur
       this.gateway.sendToUser(creatorEmail, payload);
     } else if (!isAdmin && creatorEmail && triggeredBy !== creatorEmail) {
-      // Développeur modifie le doc d'un autre développeur → notifier le créateur
       this.gateway.sendToUser(creatorEmail, payload);
     } else if (!isAdmin && creatorEmail && triggeredBy === creatorEmail) {
-      // Développeur modifie son propre doc → optionnel: notifier admins pour audit
       this.gateway.sendToAdmins(payload);
     } else {
       this.gateway.sendToAdmins(payload);
@@ -138,6 +146,7 @@ export class NotificationsService {
     title: string,
     triggeredBy: string,
     creatorEmail?: string,
+    assignedToEmail?: string, // 👈 Ajout du client assigné
   ) {
     const payload: NotificationPayload = {
       event: "doc:deleted",
@@ -150,20 +159,21 @@ export class NotificationsService {
     const actor = await this.userService.findUserByMail(triggeredBy);
     const isAdmin = actor?.role?.name_eng?.toLowerCase().includes("admin");
 
+    // ✅ Notifier le client assigné en priorité
+    if (assignedToEmail) {
+      this.gateway.sendToUser(assignedToEmail, payload);
+    }
+
     if (isAdmin && creatorEmail && triggeredBy !== creatorEmail) {
-      // Admin supprime le doc d'un développeur → notifier le développeur
       this.gateway.sendToUser(creatorEmail, payload);
     } else if (!isAdmin && creatorEmail && triggeredBy !== creatorEmail) {
-      // Développeur supprime le doc d'un autre développeur → notifier le créateur
       this.gateway.sendToUser(creatorEmail, payload);
     } else if (!isAdmin && creatorEmail && triggeredBy === creatorEmail) {
-      // Développeur supprime son propre doc → notifier les admins
       this.gateway.sendToAdmins(payload);
     } else {
       this.gateway.sendToAdmins(payload);
     }
   }
-
   async notifyUserCreated(
     userId: string,
     userEmail: string,

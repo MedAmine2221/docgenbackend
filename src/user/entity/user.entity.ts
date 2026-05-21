@@ -33,4 +33,7 @@ export class User {
 
   @OneToMany(() => Activity_Log, (activity) => activity.user)
   activityLog: Activity_Log[];
+
+  @OneToMany(() => Docs, (docs) => docs.assignedTo)
+  assignedDocs: Docs[];
 }

@@ -33,7 +33,7 @@ export class UserController {
 
   @UseGuards(AuthGuard, RoleGuard)
   @ApiBearerAuth('access-token')
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'DEVELOPER', 'DÉVELOPPEUR')
   @Get()
   async findAllUsers(): Promise<User[]> {
     return this.userService.findAll();

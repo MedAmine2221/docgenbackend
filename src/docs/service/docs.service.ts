@@ -22,7 +22,12 @@ export class DocsService {
     private readonly notificationsService: NotificationsService, // ✅ injecter
 
   ) {}
-
+  findByAssignedTo(clientId: string): Promise<Docs[]> {
+    return this.docsRepository.find({
+      where: { assignedTo: { id: clientId } },
+      relations: ['user_creator', 'apis', 'assignedTo'],
+    });
+  }
   findAll(): Promise<Docs[]> {
     return this.docsRepository.find({
       relations: ['user_creator', 'apis'],
@@ -44,122 +49,8 @@ export class DocsService {
       relations: ['user_creator', 'apis'],
     });
   }
-  async create(doc: CreateDocDTO, email: string): Promise<Docs> {
 
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      // Créer le document
-      const newDoc = this.docsRepository.create({
-        name: doc.name,
-        description: doc.description,
-        submissionDate: doc.submissionDate,
-        status: doc.status,
-        baseUrl: doc.baseUrl,
-        commonHeader: doc.commonHeader,
-        bearerToken: doc.bearerToken,
-        user_creator: { id: doc.user_creator }, // 👈 C'est le développeur propriétaire
-        version: doc.version
-      });
-      
-      const actionCreator = await this.userService.findUserByMail(email);
-      if (!actionCreator) {
-        throw new UnauthorizedException('Action creator not found');
-      }
-      
-      // 🔴 RÉCUPÉRER LE DÉVELOPPEUR PROPRIÉTAIRE
-      const ownerUser = await this.userService.findById(doc.user_creator);
-      
-      await this.activityLogService.create({
-        description: `Création du document ${JSON.stringify(newDoc)}`,
-        dateAction: new Date(),
-        typeAction: 'CREATE_DOC',
-        user: actionCreator,
-        isRollbackable: true
-      });
-      
-      const savedDoc = await queryRunner.manager.save(newDoc);
-      await queryRunner.commitTransaction();
-      
-      // ✅ Envoyer la notification au PROPRIÉTAIRE (ownerUser.email)
-      // et pas à actionCreator.email
-      this.notificationsService.notifyDocCreated(
-        savedDoc.id,
-        savedDoc.name ?? 'Sans titre',
-        actionCreator.email,     // Qui a fait l'action (l'admin)
-        ownerUser?.email,        // Pour qui le doc est créé (le développeur)
-      );
-      
-      return savedDoc;
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
-  }
-  // async update(id: string, doc: UpdateDocDTO, email: string): Promise<Docs | null> {
-  //   const existing = await this.findById(id);
-  //   if (!existing) return null;
-
-  //   const queryRunner = this.dataSource.createQueryRunner();
-  //   await queryRunner.connect();
-  //   await queryRunner.startTransaction();
-
-  //   try {
-  //     const oldData = { ...existing, apis: [...(existing.apis || [])] };
-
-  //     const updated = this.docsRepository.merge(existing, {
-  //       name: doc.name,
-  //       description: doc.description,
-  //       submissionDate: doc.submissionDate,
-  //       status: doc.status,
-  //       baseUrl: doc.baseUrl,
-  //       commonHeader: doc.commonHeader,
-  //       bearerToken: doc.bearerToken,
-  //       user_creator: doc.user_creator ? { id: doc.user_creator } : existing.user_creator,
-  //     });
-
-  //     const actionCreator = await this.userService.findUserByMail(email);
-  //     if (!actionCreator) {
-  //       throw new UnauthorizedException('Action creator not found');
-  //     }
-
-  //     await this.activityLogService.create({
-  //       description: `Mise à jour du document.
-  //         Anciennes données : ${JSON.stringify(oldData)}
-  //         Nouvelles données : ${JSON.stringify(updated)}`,
-  //       dateAction: new Date(),
-  //       typeAction: 'UPDATE_DOC',
-  //       user: actionCreator,
-  //       isRollbackable: true
-  //     });
-
-  //     await queryRunner.manager.save(updated);
-  //     await queryRunner.commitTransaction();
-      
-  //     if (updated) {
-  //       // ✅ Notifier le PROPRIÉTAIRE du document
-  //       const ownerEmail = existing.user_creator?.email;
-  //       this.notificationsService.notifyDocUpdated(
-  //         id,
-  //         updated.name ?? 'Sans titre',
-  //         actionCreator.email,  // Qui a fait l'action
-  //         ownerEmail,           // Propriétaire du doc
-  //       );
-  //     }
-      
-  //     return this.findById(id);
-  //   } catch (error) {
-  //     await queryRunner.rollbackTransaction();
-  //     throw error;
-  //   } finally {
-  //     await queryRunner.release();
-  //   }
-  // }
-  // Ajoutez cette méthode dans votre DocsService
+  
   private determineNewVersion(currentVersion: string, changeReason: 'bug' | 'new_endpoint' | 'major_change'): string {
     // Parse la version actuelle (format: X.Y.Z)
     const versionRegex = /^(\d+)\.(\d+)\.(\d+)$/;
@@ -193,8 +84,70 @@ export class DocsService {
     
     return `${major}.${minor}.${patch}`;
   }
+  // docs.service.ts
 
-  // Modifiez votre méthode update existante
+  async create(doc: CreateDocDTO, email: string): Promise<Docs> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const newDoc = this.docsRepository.create({
+        name: doc.name,
+        description: doc.description,
+        submissionDate: doc.submissionDate,
+        status: doc.status,
+        baseUrl: doc.baseUrl,
+        commonHeader: doc.commonHeader,
+        bearerToken: doc.bearerToken,
+        user_creator: { id: doc.user_creator },
+        assignedTo: doc.assignedTo ? { id: doc.assignedTo } : undefined,
+        version: doc.version
+      });
+      
+      const actionCreator = await this.userService.findUserByMail(email);
+      if (!actionCreator) {
+        throw new UnauthorizedException('Action creator not found');
+      }
+      
+      const ownerUser = await this.userService.findById(doc.user_creator);
+      
+      // 👈 Récupérer le client assigné - Version simplifiée
+      let assignedToEmail: string | undefined = undefined;
+      if (doc.assignedTo) {
+        const assignedUser = await this.userService.findById(doc.assignedTo);
+        assignedToEmail = assignedUser?.email;
+      }
+      
+      await this.activityLogService.create({
+        description: `Création du document ${JSON.stringify(newDoc)}`,
+        dateAction: new Date(),
+        typeAction: 'CREATE_DOC',
+        user: actionCreator,
+        isRollbackable: true
+      });
+      
+      const savedDoc = await queryRunner.manager.save(newDoc);
+      await queryRunner.commitTransaction();
+      
+      // ✅ Envoyer la notification au CLIENT ASSIGNÉ et au propriétaire
+      this.notificationsService.notifyDocCreated(
+        savedDoc.id,
+        savedDoc.name ?? 'Sans titre',
+        actionCreator.email,
+        ownerUser?.email,
+        assignedToEmail, // 👈 Email du client assigné
+      );
+      
+      return savedDoc;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   async update(id: string, doc: UpdateDocDTO, email: string, changeReason?: 'bug' | 'new_endpoint' | 'major_change'): Promise<Docs | null> {
     const existing = await this.findById(id);
     if (!existing) return null;
@@ -206,7 +159,6 @@ export class DocsService {
     try {
       const oldData = { ...existing, apis: [...(existing.apis || [])] };
       
-      // Déterminer la nouvelle version si une raison de modification est fournie
       let newVersion = existing.version;
       if (changeReason) {
         newVersion = this.determineNewVersion(existing.version || '1.0.0', changeReason);
@@ -221,7 +173,8 @@ export class DocsService {
         commonHeader: doc.commonHeader,
         bearerToken: doc.bearerToken,
         user_creator: doc.user_creator ? { id: doc.user_creator } : existing.user_creator,
-        version: newVersion, // Mettre à jour la version
+        version: newVersion,
+        assignedTo: existing.assignedTo,
       });
 
       const actionCreator = await this.userService.findUserByMail(email);
@@ -229,7 +182,6 @@ export class DocsService {
         throw new UnauthorizedException('Action creator not found');
       }
 
-      // Log avec la raison du changement
       const changeReasonText = changeReason 
         ? `Raison du changement: ${changeReason} (Version: ${existing.version} → ${newVersion})`
         : '';
@@ -249,11 +201,14 @@ export class DocsService {
       
       if (updated) {
         const ownerEmail = existing.user_creator?.email;
+        const assignedToEmail = existing.assignedTo?.email; // 👈 Récupérer l'email du client assigné
+        
         this.notificationsService.notifyDocUpdated(
           id,
           updated.name ?? 'Sans titre',
           actionCreator.email,
           ownerEmail,
+          assignedToEmail,
         );
       }
       
@@ -266,20 +221,6 @@ export class DocsService {
     }
   }
 
-// Vous pouvez aussi créer une méthode dédiée pour les corrections de bug
-async updateBugFix(id: string, doc: UpdateDocDTO, email: string): Promise<Docs | null> {
-  return this.update(id, doc, email, 'bug');
-}
-
-// Méthode dédiée pour l'ajout de nouveaux endpoints
-async updateWithNewEndpoint(id: string, doc: UpdateDocDTO, email: string): Promise<Docs | null> {
-  return this.update(id, doc, email, 'new_endpoint');
-}
-
-// Méthode dédiée pour les changements majeurs
-async updateMajorChange(id: string, doc: UpdateDocDTO, email: string): Promise<Docs | null> {
-  return this.update(id, doc, email, 'major_change');
-}
   async delete(id: string, email: string): Promise<void> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -288,7 +229,7 @@ async updateMajorChange(id: string, doc: UpdateDocDTO, email: string): Promise<D
     try {
       const doc = await queryRunner.manager.findOne(Docs, {
         where: { id },
-        relations: ['apis', 'user_creator'],
+        relations: ['apis', 'user_creator', 'assignedTo'], // 👈 Ajouter assignedTo
       });
 
       if (!doc) {
@@ -328,13 +269,15 @@ async updateMajorChange(id: string, doc: UpdateDocDTO, email: string): Promise<D
 
       await queryRunner.commitTransaction();
 
-      // ✅ Notifier le PROPRIÉTAIRE du document
       const ownerEmail = doc.user_creator?.email;
+      const assignedToEmail = doc.assignedTo?.email; // 👈 Récupérer l'email du client assigné
+      
       this.notificationsService.notifyDocDeleted(
         id,
         doc.name,
-        actionCreator.email,  // Qui a fait l'action
-        ownerEmail,           // Propriétaire du doc
+        actionCreator.email,
+        ownerEmail,
+        assignedToEmail, // 👈 Notifier le client assigné
       );
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -343,4 +286,19 @@ async updateMajorChange(id: string, doc: UpdateDocDTO, email: string): Promise<D
       await queryRunner.release();
     }
   }
+  // Vous pouvez aussi créer une méthode dédiée pour les corrections de bug
+  async updateBugFix(id: string, doc: UpdateDocDTO, email: string): Promise<Docs | null> {
+    return this.update(id, doc, email, 'bug');
+  }
+
+  // Méthode dédiée pour l'ajout de nouveaux endpoints
+  async updateWithNewEndpoint(id: string, doc: UpdateDocDTO, email: string): Promise<Docs | null> {
+    return this.update(id, doc, email, 'new_endpoint');
+  }
+
+  // Méthode dédiée pour les changements majeurs
+  async updateMajorChange(id: string, doc: UpdateDocDTO, email: string): Promise<Docs | null> {
+    return this.update(id, doc, email, 'major_change');
+  }
+
 }
