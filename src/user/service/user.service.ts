@@ -33,8 +33,17 @@ export class UserService implements OnModuleInit {
   ) {}
   async onModuleInit() {}
 
-  findAll(): Promise<User[]> {
-    return this.userRepository.find({ relations: ['role', 'docs'] });
+  async findAll(): Promise<User[]> {
+    const res =  await this.userRepository.find({
+      relations: {
+        role: true,
+        docs: true,           
+        assignedDocs: true,
+        activityLog: true,
+      },
+    });
+    return res;
+    
   }
 
   findById(id: string): Promise<User | null> {

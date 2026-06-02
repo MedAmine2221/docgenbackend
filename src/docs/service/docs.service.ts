@@ -30,7 +30,7 @@ export class DocsService {
   }
   findAll(): Promise<Docs[]> {
     return this.docsRepository.find({
-      relations: ['user_creator', 'apis'],
+      relations: ['user_creator', 'apis', 'assignedTo'],
     });
   }
 
